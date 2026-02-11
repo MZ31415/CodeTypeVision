@@ -9,6 +9,7 @@ CodeTypeVision 原名为 CodeToVideo, 简称一致.
 
 演示视频如下:
 ![helloWorld_c](./helloWorld_c.mp4)
+(这个视频可能因为较大而需要下载才能观看)
 
 相关视频也可在我的 B站空间 [一勺云墨](https://space.bilibili.com/3546881812597194) 查看.
 
