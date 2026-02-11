@@ -8,11 +8,14 @@ codeTypeVision v0.4.7.2026.02.11
 
 这是实现异步的版本
 
+来自 https://github.com/MZ31415/CodeTypeVision
+由B站 一勺云墨 (https://space.bilibili.com/3546881812597194) 编写 
+
 -ω-
 """
 
 #region 引用库
-"""以下需要pip
+"""以下需要库pip
 pip install PyQt5>=5.15.0 pygments>=2.10.0 tqdm>=4.64.0
 """
 import os

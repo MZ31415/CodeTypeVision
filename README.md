@@ -28,7 +28,7 @@ CodeTypeVision 原名为 CodeToVideo, 简称一致.
 
 - **异步渲染系统**: 多核并行处理
 - **缓存机制**: 减少重复计算, 优化内存使用
-- **可配置并发**: 支持自定义并行任务数量上限
+- **可配置并发**: 支持自定义并行任务数量上限 `MAX_CONCURRENT`
 
 ### 控制选项
 
@@ -91,22 +91,22 @@ from PyQt5.QtGui import QImage
 from codeTypeVision import Field, CodeLineRenderer
 
 # 简单示例
-# text 参数为必需项;其他建议填写参数已标注
+# text 参数为必需项; 其他建议填写参数已标注
 field = Field(
-    text = "printf('Hello World')\n",             # 待转换代码文本,须以"\n"结尾
+    text = "printf('Hello World')\n",             # 待转换代码文本, 须以"\n"结尾
     #video_output_dir=os.path.dirname(__file__),  # 视频输出目录
     video_name = "HelloWorld.mp4",                # 视频文件名(须以.mp4结尾)
     speed_function = lambda _:7.5,                # 字符速度函数 v = f(index),单位为字符/秒
-    limit = "*1.0",                               # 限制:"*zoom" 按缩放因子控制速度;"-time(s)" 自动计算缩放因子以满足时间限制
-    indentation_speed = 2.5,                      # 缩进速度倍率
-    start_rest = 3.0,                             # 起始停顿(秒)
-    end_rest = 5.0,                               # 结束停顿(秒),默认为 0.0
-    frame = 30,                                   # 输出视频帧率,默认 24
+    limit = "-60.0",                              # 限制:"*zoom" 按缩放因子控制速度;"-time(s)" 自动计算缩放因子以满足时间限制
+    indentation_speed = 2.5,                      # 缩进速度倍率, 默认1.0
+    start_rest = 3.0,                             # 起始停顿(秒), 默认为 0.0
+    end_rest = 5.0,                               # 结束停顿(秒), 默认为 0.0
+    frame = 30,                                   # 输出视频帧率, 默认 24
     background_img = QImage(r".\IMG_PATH"),       # 背景图片(QImage 对象),分辨率应与 resolution 比例一致
     head_txt = "HelloWorld.c",                    # 头文本
-    language = "c",                               # 代码语言(支持文件后缀名),默认 py
-    #resolution = (1920, 1080),                   # 分辨率(宽×高)
-    #render = CodeLineRenderer(font0="", font1="") # 字体参数:font0 为主字体,font1 为中文字体
+    language = "c",                               # 代码语言(支持文件后缀名), 默认 py
+    #resolution = (1920, 1080),                   # 分辨率(宽×高), 默认(1920, 1080)
+    #render = CodeLineRenderer(font0="", font1="")# 字体参数:font0 为主字体,font1 为中文字体
 )
 field.main() # 生成视频
 ```
@@ -171,6 +171,8 @@ if __name__ == "__main__": # 示例使用
 当前最新版本为 **0.4.7**(截至 2026 年 2 月 11 日), 该版本实现了异步渲染功能.
 
 代码注释中包含了进一步的使用说明.
+
+过去的旧版本未上传.
 
 ### 已知问题
 
