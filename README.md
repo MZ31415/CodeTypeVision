@@ -1,213 +1,188 @@
-# CodeTypeVision - 代码打字机视频生成器
+# CodeTypeVision (CTV) - 代码打字机视频生成器
 
 ## 项目简介
 
-CodeTypeVision (简称 CTV) 是一个将代码文本转换为动态视频的工具, 通过"打字机"效果展示编程过程. 该工具适用于社交媒体分享与创意表达场景, 将静态代码转换为动态视觉内容. 使用Python语言编写.
-CodeTypeVision 原名为 CodeToVideo, 简称一致.
+**CodeTypeVision**(简称 `ctv`)是一个将代码文本转换为动态视频的工具, 以**打字机效果**逐字展示编程过程, 并自动添加语法高亮, 光标跟随与平滑相机运动. 为了拟合录屏效果而制作.
 
-## 演示视频
+原项目名 `CodeToVideo`, 现重构成模块化框架, 支持配置文件, 多语言, 艺术化背景等特性.
 
-演示视频如下:
-![helloWorld_c](./helloWorld_c.mp4)
-(这个视频可能因为较大而需要下载才能观看)
+你可以在我的 B 站空间 [云墨-w](https://space.bilibili.com/3546881812597194) 查看一些相关投稿视频.
 
-相关视频也可在我的 B站空间 [一勺云墨](https://space.bilibili.com/3546881812597194) 查看.
+---
 
-## 特性
+## 主要特性
 
-### 基本功能
+### 核心功能
 
-- **实时打字动画**: 模拟逐字输入代码的过程
-- **语法高亮**: 支持多种编程语言的语法着色
-- **多语言支持**: Python,C,C++,C#,Java 等
-- **流畅相机运动**: 光标跟随, 平滑缩放与移动
-- **连体字支持**: 支持连体字体显示
-- **模糊发光效果**: 代码光晕效果
-- **默认高亮色**: 基于国色色系
+- **实时打字动画** – 逐字模拟输入, 支持自定义速度曲线
+- **语法高亮** – 基于 Pygments, 支持 Python / C / C++ / C# / Java 等语言
+- **光标跟随 + 行高亮** – 自动追踪当前行与当前字符位置
+- **平滑相机系统** – 弹簧‑阻尼模型, 光标居中, 自动缩放
+- **连体字支持** – 完美显示 `→` `=>` 等 Fira Code 连体
+- **内置视觉效果** – 代码模糊发光, 行高亮块
 
-### 性能
+### 可配置性
 
-- **异步渲染系统**: 多核并行处理
-- **缓存机制**: 减少重复计算, 优化内存使用
-- **可配置并发**: 支持自定义并行任务数量上限 `MAX_CONCURRENT`
+- **参数化配置** – 速度, 缩放, 阻尼, 颜色均可自由调节
+- **JSON 配置文件** – 一键保存/加载完整设置, 适合批量生成
+- **命令行接口** – 支持 `ctv -c config.json` 无交互运行
+- **背景/封面生成** – `make_text_image` 快速生成艺术字图片
 
-### 控制选项
+### 性能与架构(v0.5.0)
 
-- **参数化配置**: 速度,颜色,效果 可自定义
-- **背景艺术生成**: 内置文字背景生成器
-- **头文本**: 支持视频标题与描述添加
-- **时间线控制**: 可调节打字节奏与停顿时长
+- **模块化分层** – config / data / render / core / utils 清晰分离
+- **QTextLayout 渲染** – 精确处理连体字与字符边界
+- **无异步依赖** – 稳定串行处理(未来可扩展多进程)
+- **缓存机制** – 行图片增量更新, 避免重复渲染
+
+---
 
 ## 开始使用
 
-### 下载
-
-可通过终端克隆仓库, 或直接下载核心文件 [codeTypeVision](./codeTypeVision0.4.7.py):
+### 1. 获取代码
 
 ```bash
 git clone https://github.com/mz31415/CodeTypeVision.git
 cd CodeTypeVision
-pip install -r requirements.txt
 ```
 
-### 依赖
+或直接下载最新 Release 中的 `ctv-0.5.0.zip`,解压后得到 `ctv/` 文件夹.
 
-#### FFmpeg
+### 2. 安装依赖
 
-需下载 [FFmpeg](https://ffmpeg.org/) 并添加至系统环境变量, 用于将帧序列合成为 `.mp4` 格式视频文件.
-
-#### Python
-
-除 Python3 外, 需通过 **pip** 安装以下库:
-
-- **Pygments**: 语法高亮引擎
-- **PyQt5**: 图形渲染 (不使用 GUI, 仅用于高质量图像绘制)
-- **tqdm**: 进度条显示
-
-可通过以下命令安装依赖:
-
-```bash
-pip install -r requirements.txt
-```
-
-若未下载 [requirements.txt](requirements.txt), 可执行:
+#### Python 包
 
 ```bash
 pip install PyQt5>=5.15.0 pygments>=2.10.0 tqdm>=4.64.0
 ```
 
-#### 可选依赖
+#### FFmpeg(必需)
 
-- **Fira Code**: 建议安装字体 [Fira Code](https://github.com/tonsky/FiraCode), 该字体为默认配置. 若未指定新字体, 运行时会打印警告, 但不影响程序运行.
-- **Windows 系统**: 代码中引入标准库 `winsound` 用于播放提示音. 非 Windows 系统下, 提示音功能不可用, 但程序仍可正常运行.
+用于将生成的帧序列合成为 `.mp4` 视频.  
 
-### 使用教程
+- 官网下载:[FFmpeg](https://ffmpeg.org/)  
+- 添加 `bin` 目录到系统环境变量 `PATH`,确保终端输入 `ffmpeg -version` 能正确显示.
 
-#### 外部调用
+#### 字体
 
-在与 `codeTypeVision.py` 同级目录下新建 `.py` 文件:
+- **Fira Code** – 默认英文字体(连体字效果最佳).  
+  可从 [GitHub](https://github.com/tonsky/FiraCode) 下载安装.  
+- 默认状态系统会自动 fallback 到 `Consolas` 或 `Microsoft YaHei` 等中文字体.
+- 调整配置 `fonts` 进行自定义字体修改
+
+### 3. 快速生成视频
+
+#### 方式一:使用配置文件(推荐)
+
+```bash
+# 生成示例配置文件(在 ./example_config.json)
+ctv -e
+
+# 编辑 example_config.json,然后执行
+ctv -c example_config.json
+```
+
+#### 方式二:Python 脚本调用
 
 ```python
-from PyQt5.QtGui import QImage
-from codeTypeVision import Field, CodeLineRenderer
+from ctv import Config, CTVField
 
-# 简单示例
-# text 参数为必需项; 其他建议填写参数已标注
-field = Field(
-    text = "printf('Hello World')\n",             # 待转换代码文本, 须以"\n"结尾
-    #video_output_dir=os.path.dirname(__file__),  # 视频输出目录
-    video_name = "HelloWorld.mp4",                # 视频文件名(须以.mp4结尾)
-    speed_function = lambda _:7.5,                # 字符速度函数 v = f(index),单位为字符/秒
-    limit = "-60.0",                              # 限制:"*zoom" 按缩放因子控制速度;"-time(s)" 自动计算缩放因子以满足时间限制
-    indentation_speed = 2.5,                      # 缩进速度倍率, 默认1.0
-    start_rest = 3.0,                             # 起始停顿(秒), 默认为 0.0
-    end_rest = 5.0,                               # 结束停顿(秒), 默认为 0.0
-    frame = 30,                                   # 输出视频帧率, 默认 24
-    background_img = QImage(r".\IMG_PATH"),       # 背景图片(QImage 对象),分辨率应与 resolution 比例一致
-    head_txt = "HelloWorld.c",                    # 头文本
-    language = "c",                               # 代码语言(支持文件后缀名), 默认 py
-    #resolution = (1920, 1080),                   # 分辨率(宽×高), 默认(1920, 1080)
-    #render = CodeLineRenderer(font0="", font1="")# 字体参数:font0 为主字体,font1 为中文字体
+# 构建配置对象
+config = Config(
+    codeText='printf("Hello World\\n");',
+    language='c',
+    mp4Name='hello_c.mp4',
+    headText='hello.c',
+    start_rest=1.0,
+    end_rest=5.0,
+    # 更多参数见 config.py 中的 Config 类
 )
-field.main() # 生成视频
+
+field = CTVField(config)
+field.main()
 ```
 
-#### 内部使用
+---
 
-**更建议**直接修改原代码运行:
+## 配置文件说明
 
-```python
-# CodeTypeVision.py 文件内...
+`Config` 类 (`config.py`) 支持以下主要字段:
 
-if __name__ == "__main__": # 示例使用
-    # nowtime 为全局函数
-    # THIS_PATH = os.path.dirname(__file__) + "\\" # 全局变量
-    
-    print(nowtime() + " 程序开始运行...")
-    
-    bg = make_text_image([("- ω -", (238, 246, 248, 25))]) # 快速生成背景图
+| 字段 | 类型 | 说明 |
+|------|------|------|
 
-    make_text_image([
-        ("Hello World", Field.HC["P"]),    # Field.HC 为 RGBA 颜色字典
-        ],
-        resolution=(2000,1500)).save(THIS_PATH + "helloWorld_cover.png") # 保存封面图片
+| `codeText` | str | 要转换的代码文本(必需) |
+| `language` | str | 代码语言(py / c / cpp / cs / java),默认 "python" |
+| `mp4Name` | str | 输出视频文件名(自动补 `.mp4`) |
+| `fps` | int | 帧率(建议 24~60) |
+| `resolution` | (w,h) | 视频分辨率,默认 (1920,1080) |
+| `headText` | str | 显示在代码上方的标题文字, 默认无 |
+| `background_img` | QImage / str | 背景图片(路径或 QImage 对象) |
+| `speed_function` | tuple[str, str] | 速度函数 `v = f(t)`,默认 `lambda t: 7.5` |
+| `indentation_speed_index` | float | 缩进速度指数,默认 2.0 |
+| `time_limit` | str | `"*1.5"` 缩放因子 / `"-30"` 限制时长(秒) / 为 `""` 时可动态调整|
+| `start_rest` / `end_rest` | float | 开头 / 结尾静置时间(秒) |
+| `fonts` | list[str] | 字体家族列表(fallback) |
 
-    try:
-        txt = quick_open(THIS_PATH + r"showings\helloWorld.c") # 读取代码文件
-        field = Field(txt,
-                    video_name = "helloWorld_c.mp4",
-                    speed_function = lambda _:7.5,
-                    frame = 30,
-                    start_rest = 1.0,
-                    end_rest = 5.0,
-                    limit = "-30",
-                    indentation_speed = 2.5,
-                    background_img = bg,
-                    head_txt = "helloWorld.c",
-                    language = "c"
-                )
+关于`speed_function`, 目前请填入 ["F", `{f(t)}`], 如 ["F", "7.5"], ["F", "t"]
 
-        field.main()
-    finally:  # 提示与错误处理
-        for _ in range(3):
-            sleep(0.5)
-            MessageBeep()
-        #input("按回车键退出...")
+完整配置可通过 `ctv -e` 生成示例 JSON,亦可在 Python 中动态修改.
 
-```
+---
 
-## 文件输出
+## 输出文件
 
-### 默认输出
+- **视频文件** – `{mp4Name}` 保存在 `outputDir`(默认项目根目录)
+- **预览图** – `{mp4Name}_preview.png` 展示完整代码长图(缓存图片在 `temp/` 目录)
+- **中间文件** – 默认在项目根目录生成 `ctv_{视频名}/` 文件夹,包含:
+  - `temp/` – 渲染的原始行图片(`*.png`)
+  - `frames/` – 合成的视频帧(`0.png`, `1.png`, …)
 
-- `{output}_preview.png`: 代码全局预览图
-- `{output}.mp4`: 生成的视频文件
+> 目前请自行清理 `ctv_*` 临时文件夹以释放磁盘空间.
 
-### 自定义输出
-
-- **封面**: 可使用 `make_text_image` 函数生成封面或其他图片文件
+---
 
 ## 版本说明
 
-当前最新版本为 **0.4.7**(截至 2026 年 2 月 11 日), 该版本实现了异步渲染功能.
+### v0.5.0(当前版本)– 框架重置
 
-代码注释中包含了进一步的使用说明.
+- **完全模块化**: 分离 config/data/render/core/utils,代码结构清晰
+- **QTextLayout 渲染**: 支持连体字与精确光标定位
+- **配置文件系统**: 支持 JSON 保存/加载, 提供 CLI 工具
+- **移除异步依赖**: 串行处理更稳定
+- **已知问题**: 暂未恢复异步/多进程加速; 部分极端括号嵌套可能影响渲染; 不支持 Execution 模式(预留).
 
-过去的旧版本未上传.
+### 历史版本(v0.4.7 及更早)
 
-### 已知问题
+- `v0.4.7` 异步并发设计; 对括号等字符无特殊处理; 字体支持有限; 语法高亮有限.
+- 代码为单文件结构, 现已废弃.
+- v0.4即以前的代码不在此仓库保留
 
-1. 输入代码文本**必须**以非 `\n` 开头,以 `\n` 结尾.以 `\n` 开头可能引发错误,不以 `\n` 结尾将导致最后一个字符在视频中被省略.**该问题尚未修复.**
-2. 缺少异常处理, 部分代码存在报错风险或帧图像缺失可能.
-3. 存在较多硬编码, 类结构有待优化.
-4. 生成视频效果为顺序打字机输出, 视觉上类似于代码删除过程的倒放.
-5. 工作目录管理机制不够完善.
-6. 其他细节问题待改进.
+---
 
-**后续版本计划**: 预计将在 0.5 版本中对上述问题进行修正. (可能会在年后更新)
+## PS
 
-## 贡献
+> 0.5.0版本基本实现框架 并且可以运行, 但部分不合理, 部分仅存在预留模式接口 而没有实现; 下次更新可能很久(预计1年后, 2027.7)
 
-欢迎各类形式的贡献.
+---
 
-## 许可证
+## 贡献与许可证
 
-本项目采用 MIT 许可证.详见 [LICENSE](LICENSE) 文件.
+- **贡献**:欢迎提交 Issue / PR, 或分享你的创意视频作品.
+- **许可证**:MIT [LICENSE](./LICENSE).
+
+---
 
 ## 致谢
 
-本项目依赖以下技术实现:
+- **Pygments** – 语法高亮引擎
+- **PyQt5** – GUI提供高质量图形渲染
+- **FFmpeg** – 视频编码
+- **Fira Code** – 优美的编程字体
+- **DeepSeek AI** – 提供部分代码建议与思路
 
-- **Pygments**: 语法高亮引擎
-- **PyQt5**: 图形渲染框架
-- **FFmpeg**: 视频编码工具
-- **Fira Code**: 编程字体
-
-感谢 DeepSeek-AI 提供的部分编程建议与指导.
-
-**感谢您的阅读!!**
-
-如您使用 CTV 生成视频并发布于社交媒体, **请注明项目出处**; 若发布于 B站, 欢迎 **at我** `@一勺云墨`.
+> 如果本项目对你有所帮助, 欢迎给个 ⭐ Star.  
+> 若你在 B站 发布使用 CTV 制作的视频, 欢迎 **@云墨-w**.
 
 ---
 
