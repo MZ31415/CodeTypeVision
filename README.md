@@ -110,7 +110,6 @@ field.main()
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-
 | `codeText` | str | 要转换的代码文本(必需) |
 | `language` | str | 代码语言(py / c / cpp / cs / java),默认 "python" |
 | `mp4Name` | str | 输出视频文件名(自动补 `.mp4`) |
