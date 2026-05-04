@@ -237,6 +237,7 @@ class Config:
             "fps":            self.fps,
             "resolution":     self.resolution,
             "fonts":          self.fonts,
+            "fontSizes":      self.fontSizes,
             "renderer":       None,
             "background_img": bgpath,
             "outputDir":      self.outputDir,

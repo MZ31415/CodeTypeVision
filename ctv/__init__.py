@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:UTF-8 -*-
 TEXT = """
-ctv v0.5.0
+ctv v0.5.0.2026.05.04
 
 此包来自 https://github.com/ymz-w/CodeTypeVision
 

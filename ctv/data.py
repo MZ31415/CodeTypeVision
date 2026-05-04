@@ -59,7 +59,7 @@ class RenderData:
         if self.data is ...: return # 忽略...
         for i in range(len(self.data)):
             c = "w" if i==self.cursor[0] else "G"
-            self.data[i] = [((f"{i:4d}│"), c)] + self.data[i]
+            self.data[i] = [((f"{i+1:4d}│"), c)] + self.data[i]
 
     def add_head_text(self, text:str): # 后于add_line_head
         if self.data is not ...:

@@ -115,20 +115,7 @@ class CTVField:
                 self.fps,
                 0,
                 self.length-1
-            )
-
-    def _save_preview(self, path:str) -> None:
-        # 保存预览图片
-        img = QImage(path)
-        result = QImage(img.width()+100, img.height()+100, QImage.Format_ARGB32)
-        result.fill(QColor(*DEFAULT_BACKGROUND_COLOR))
-        painter = QPainter(result)
-        painter.drawImage(50, 50, img)
-        painter.end()
-
-        p = os.path.join(self.tempDir, f"{os.path.splitext(self.mp4Name)[0]}_preview.png")
-        result.save(p) # TODO: 如果没成功呢(一般来说不会)
-        logging.info(f"预览图片已保存到: {p}")
+            )     
 
     def main(self):
         logging.info(f"开始生成视频 {self.mp4Name}")
@@ -150,8 +137,10 @@ class CTVField:
 
         rm = RenderManager(logic_line_height, self.renderer, rd, self.tempDir, True)
         cd = rm.generate()
-        self._save_preview(f"{rd[-1].img_index}.png")
-        del rm, rd 
+        p = os.path.join(self.outputDir, f"{os.path.splitext(self.mp4Name)[0]}_preview.png")
+        rm.render_preview(p) # TODO: 这预览图保存得很不合时宜, 对之后的多模式不友好
+        logging.info(f"预览图片已保存到: {p}")
+        del rm, rd
 
         if self.configCS.mode == "D":
             cs = CameraSystem(self.resolution, self.fps, standard_line_height, logic_line_height, cd, initial_zoom_for_CS, **self.configCS.data) # ...
@@ -773,16 +762,21 @@ class RenderManager:
             painter.drawImage(0, self.logical_lh*line, img)
             painter.end()
 
-    def _render_line(self, linedata:list) -> QImage:
+    def _render_adjust(self, linedata:list) -> list:
         for i, d in enumerate(linedata):
             linedata[i] = (d[0].replace("\t"," "*4), DC[d[1]])
         # 不使用加法的原因是数据不都是元组(难道列表可以加元组?) # 已经忘了为什么这么注释了...
+        return linedata
+
+    def _render_line(self, linedata:list) -> QImage:
+        linedata = self._render_adjust(linedata)
         return self.renderer.render_line(linedata)
 
     def _render_line_with_char_rect(self, linedata:list, findci:int) -> tuple[QImage, int]:
-        for i, d in enumerate(linedata):
-            linedata[i] = (d[0].replace("\t"," "*4), DC[d[1]])
-        return self.renderer.render_line_with_char_rect(linedata, findci)
+        s = "".join(c[0] for c in linedata)
+        tabn = s.count("\t", 0, findci) # 一个字符"\t" 转为4个" ", 净增加 3*tabn
+        linedata = self._render_adjust(linedata)
+        return self.renderer.render_line_with_char_rect(linedata, findci+3*tabn)
 
     def _render_one_without_cache(self) -> bool:
         if self.rdatum.isNotUpData:
@@ -847,6 +841,22 @@ class RenderManager:
             self.thisImg.save(os.path.join(self.tempDir, name))
 
         return if_updata # 缓存不置空thisImg
+
+    def render_preview(self, path:str) -> QImage:
+        # 只在with_cache用 有些临时性质
+        for d in self.rdatum[::-1]:
+            if d.data is not ...:
+                break
+        d.data[-1] = [((f"{len(d.data)-1:4d}│"), "G")] + d.data[-1][1:]
+        self._edit_line_img(len(d.data)-1, self._render_line(d.data[-1]))
+        # 保存预览图片
+        result = QImage(self.thisImg.width()+100, self.thisImg.height()+100, QImage.Format_ARGB32)
+        result.fill(QColor(*DEFAULT_BACKGROUND_COLOR))
+        painter = QPainter(result)
+        painter.drawImage(50, 50, self.thisImg)
+        painter.end()
+
+        result.save(path) # TODO: 如果没成功呢(一般来说不会)
 
     def _render(self) -> list:
         cdatum = []
@@ -1072,7 +1082,7 @@ class CameraSystem: # TODO: 是否拆分成多个子类 以模式化
         hr = self._lch / h
         wr = self._lcw / w
         rate = min(hr, wr)  # zoom需乘的倍数
-        rrate = 1 - 0.5*(1-rate)**2 # 修正比率, 减小波动
+        rrate = max(1 - 0.5*(1-rate)**2, 0.99) # 修正比率, 减小波动
         # 0<x=rata<=1
         # f(x) = 1-0.5(1-x)**n, n>1(n=0退化为一次函数)
         # f`(x)= 0.5n(1-x)**n, n 同上
@@ -1159,5 +1169,5 @@ class FrameGenerater: # TODO: 考虑更换图像处理库, 毕竟QT本质是GUI,
         logging.info("开始生成帧集...")
         self._render()
 
-# TODO: 为RM和FG考虑多进程式生成图片(尤其是后者更慢)
+# TODO: 为RM和FG考虑多进程式生成图片
 # TODO: 为SG和CS加进度条(目前速度快, 暂不加)
